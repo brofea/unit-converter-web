@@ -1,12 +1,18 @@
 # Unit Converter
 
-[English](README-en.md) | [中文]
-
 一个前后端分离的单位转换器，使用 Go、Gin、Vue 创建，支持多种单位转换
 
-这是一个来自 [roadmap.sh](https://roadmap.sh/projects/unit-converter) 的后端练习项目。
+这是一个来自 [roadmap.sh](https://roadmap.sh/projects/unit-converter) 的后端练习项目
+
+A unit converter web application built with Go, Gin, and Vue, supporting various unit conversions.
+
+This is a backend exercise project from [roadmap.sh](https://roadmap.sh/projects/unit-converter).
 
 ## 功能
+
+- 基本的物理单位转换
+- 货币汇率查询和转换（实时汇率数据）
+- 前后端分离的架构设计
 
 ## 快速开始
 
@@ -30,3 +36,32 @@
 - RESTful API 设计
 - 与第三方 API（如货币汇率）的集成
 - 前后端分离的开发模式
+
+## Features
+
+- Basic physical unit conversions
+- Currency exchange rate retrieval and conversion (with real-time exchange rate data)
+- Frontend-backend separation architecture
+
+## Quick Start
+
+- Clone the project using `git clone`
+
+For the frontend:
+
+- Navigate to the `\frontend` directory and run `npm install` to install dependencies
+- Run `npm run dev` to start the development server
+- Or use `npm run build` to build for production
+
+For the backend:
+
+- Navigate to the `\backend` directory and run `go mod tidy` to install dependencies
+- Run `make run` to start the server
+- Or use `make build` to build for production (Windows users check the commands in the `Makefile`)
+
+## Learning Outcomes
+
+- Basic usage of the Gin framework
+- RESTful API design
+- Integration with third-party APIs (like currency exchange rates)
+- Frontend-backend separation in development
