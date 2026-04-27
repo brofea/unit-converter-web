@@ -1,40 +1,45 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-interface ConvertRequest {
-  category: string
-  fromUnit: string
-  toUnit: string
+interface LengthConvertRequest {
   value: number
+  from: string
+  to: string
 }
 
 interface ConvertResponse {
-  status: string
   result?: number
+  error?: string
 }
 
 const props = defineProps<{
-  category: string
-  unitOptions: string[]
   apiBaseUrl: string
 }>()
 
-const selectedUnitA = ref(props.unitOptions[0] ?? '')
-const selectedUnitB = ref(props.unitOptions[1] ?? props.unitOptions[0] ?? '')
-const valueA = ref<number | null>(null)
+const unitOptions = [
+  { label: '米', value: 'm' },
+  { label: '厘米', value: 'cm' },
+  { label: '毫米', value: 'mm' },
+  { label: '英寸', value: 'inch' },
+  { label: '英尺', value: 'ft' }
+]
+
+const selectedUnitA = ref(unitOptions[0]?.value ?? '')
+const selectedUnitB = ref(unitOptions[1]?.value ?? unitOptions[0]?.value ?? '')
+const valueA = ref('')
 const loading = ref(false)
 const responseMessage = ref('')
 const resultValue = ref<number | null>(null)
 
-const endpoint = computed(() => `${props.apiBaseUrl}/convert`)
+const endpoint = computed(() => `${props.apiBaseUrl}/api/v1/units/length`)
 
-function pickUnitA(unit: string): void {
-  selectedUnitA.value = unit
-}
+const selectedFromLabel = computed(() => {
+  return unitOptions.find((unit) => unit.value === selectedUnitA.value)?.label ?? selectedUnitA.value
+})
 
-function pickUnitB(unit: string): void {
-  selectedUnitB.value = unit
-}
+const selectedToLabel = computed(() => {
+  return unitOptions.find((unit) => unit.value === selectedUnitB.value)?.label ?? selectedUnitB.value
+})
 
 function swapUnits(): void {
   const temp = selectedUnitA.value
@@ -44,20 +49,25 @@ function swapUnits(): void {
 
 async function submitConvert(): Promise<void> {
   if (!selectedUnitA.value || !selectedUnitB.value) {
-    responseMessage.value = '请选择 A 单位和 B 单位。'
+    responseMessage.value = '请选择起始单位和目标单位。'
     return
   }
 
-  if (valueA.value === null) {
-    responseMessage.value = '请填写 A 数值。'
+  if (valueA.value.trim() === '') {
+    responseMessage.value = '请填写数值。'
     return
   }
 
-  const payload: ConvertRequest = {
-    category: props.category,
-    fromUnit: selectedUnitA.value,
-    toUnit: selectedUnitB.value,
-    value: Number(valueA.value)
+  const value = Number(valueA.value)
+  if (Number.isNaN(value)) {
+    responseMessage.value = '请输入有效数值。'
+    return
+  }
+
+  const payload: LengthConvertRequest = {
+    value,
+    from: selectedUnitA.value,
+    to: selectedUnitB.value
   }
 
   loading.value = true
@@ -74,17 +84,18 @@ async function submitConvert(): Promise<void> {
     })
 
     if (!response.ok) {
-      throw new Error(`请求失败：${response.status}`)
+      const errorData = (await response.json().catch(() => null)) as ConvertResponse | null
+      throw new Error(errorData?.error ?? `请求失败：${response.status}`)
     }
 
     const data = (await response.json()) as ConvertResponse
 
-    if (data.status !== 'success') {
-      throw new Error('后端返回失败状态。')
+    if (typeof data.result !== 'number') {
+      throw new Error(data.error ?? '后端未返回有效结果。')
     }
 
-    resultValue.value = typeof data.result === 'number' ? data.result : null
-    responseMessage.value = '转换成功。'
+    resultValue.value = data.result
+    responseMessage.value = `转换成功：${value} ${selectedFromLabel.value} = ${data.result} ${selectedToLabel.value}`
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知错误'
     responseMessage.value = `转换失败：${message}`
@@ -96,43 +107,33 @@ async function submitConvert(): Promise<void> {
 
 <template>
   <section class="panel">
-    <h2 class="title">{{ category }}转换</h2>
+    <h2 class="title">长度转换</h2>
 
-    <div class="form-row units">
-      <p class="label">A 单位</p>
-      <div class="unit-list">
-        <label v-for="unit in unitOptions" :key="unit" class="unit-item">
-          <input
-            type="checkbox"
-            :checked="selectedUnitA === unit"
-            @change="pickUnitA(unit)"
-          />
-          <span>{{ unit }}</span>
-        </label>
-      </div>
+    <div class="form-row">
+      <label for="fromUnit" class="label">起始单位</label>
+      <select id="fromUnit" v-model="selectedUnitA" class="input">
+        <option v-for="unit in unitOptions" :key="unit.value" :value="unit.value">
+          {{ unit.label }}（{{ unit.value }}）
+        </option>
+      </select>
     </div>
 
     <div class="form-row">
-      <label for="valueA" class="label">A 数值</label>
-      <input id="valueA" v-model.number="valueA" type="number" class="input" placeholder="请输入 A 数值" />
-    </div>
-
-    <div class="form-row units">
-      <p class="label">B 单位</p>
-      <div class="unit-list">
-        <label v-for="unit in unitOptions" :key="`b-${unit}`" class="unit-item">
-          <input
-            type="checkbox"
-            :checked="selectedUnitB === unit"
-            @change="pickUnitB(unit)"
-          />
-          <span>{{ unit }}</span>
-        </label>
-      </div>
+      <label for="valueA" class="label">数值</label>
+      <input id="valueA" v-model="valueA" type="text" class="input" placeholder="请输入数值" inputmode="decimal" />
     </div>
 
     <div class="form-row">
-      <label for="resultBox" class="label">B 数值</label>
+      <label for="toUnit" class="label">目标单位</label>
+      <select id="toUnit" v-model="selectedUnitB" class="input">
+        <option v-for="unit in unitOptions" :key="`to-${unit.value}`" :value="unit.value">
+          {{ unit.label }}（{{ unit.value }}）
+        </option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="resultBox" class="label">结果</label>
       <input
         id="resultBox"
         class="input"
@@ -143,11 +144,13 @@ async function submitConvert(): Promise<void> {
       />
     </div>
 
+    <p v-if="responseMessage" class="meta">{{ responseMessage }}</p>
+
     <div class="action-row">
       <button class="swap-btn" type="button" @click="swapUnits">调换单位</button>
 
-      <button class="convert-btn" :disabled="loading" @click="submitConvert">
-        {{ loading ? '转换中...' : '转换按钮' }}
+      <button class="convert-btn" type="button" :disabled="loading" @click="submitConvert">
+        {{ loading ? '转换中...' : '开始转换' }}
       </button>
     </div>
   </section>
@@ -181,29 +184,9 @@ async function submitConvert(): Promise<void> {
   margin-bottom: 1rem;
 }
 
-.units {
-  margin-bottom: 1.2rem;
-}
-
 .label {
   color: #20334f;
   font-weight: 600;
-}
-
-.unit-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-}
-
-.unit-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.65rem;
-  border-radius: 999px;
-  border: 1px solid #7e96b7;
-  background: #f2f6fc;
 }
 
 .input {
@@ -217,6 +200,19 @@ async function submitConvert(): Promise<void> {
   background: #fcfdff;
   color: #122034;
   font-size: 1rem;
+}
+
+select.input {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #1b3a60 50%),
+    linear-gradient(135deg, #1b3a60 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2.1rem;
 }
 
 .input:focus {
@@ -275,8 +271,7 @@ async function submitConvert(): Promise<void> {
   box-shadow: none;
 }
 
-.meta,
-.status {
+.meta {
   margin: 0.75rem 0 0;
   color: #1d3150;
 }

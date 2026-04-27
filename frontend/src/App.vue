@@ -1,57 +1,21 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import ConversionPage from './components/ConversionPage.vue'
-
-type Category = '长度' | '面积' | '体积' | '重量' | '速度' | '温度' | '金钱'
-
-const pages: { key: Category; units: string[] }[] = [
-  { key: '长度', units: ['米', '千米', '英寸', '英里'] },
-  { key: '面积', units: ['平方米', '平方千米', '公顷', '平方英尺'] },
-  { key: '体积', units: ['升', '毫升', '立方米', '加仑'] },
-  { key: '重量', units: ['克', '千克', '磅', '盎司'] },
-  { key: '速度', units: ['米/秒', '千米/小时', '英里/小时', '节'] },
-  { key: '温度', units: ['摄氏度', '华氏度', '开尔文'] },
-  { key: '金钱', units: ['CNY', 'USD', 'EUR', 'JPY'] }
-]
-
-const activePage = ref<Category>('长度')
-
-const activeConfig = computed(() => {
-  return pages.find((page) => page.key === activePage.value) ?? pages[0]!
-})
 
 const apiBaseUrl = computed(() => {
   return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 })
-
-function switchPage(page: Category): void {
-  activePage.value = page
-}
 </script>
 
 <template>
   <div class="layout">
     <header class="topbar">
       <h1 class="brand">Unit Converter</h1>
-      <nav class="nav">
-        <button
-          v-for="page in pages"
-          :key="page.key"
-          class="nav-btn"
-          :class="{ active: activePage === page.key }"
-          @click="switchPage(page.key)"
-        >
-          {{ page.key }}
-        </button>
-      </nav>
+      <p class="subtitle">当前版本仅支持长度转换</p>
     </header>
 
     <main class="content">
-      <ConversionPage
-        :category="activeConfig.key"
-        :unit-options="activeConfig.units"
-        :api-base-url="apiBaseUrl"
-      />
+      <ConversionPage :api-base-url="apiBaseUrl" />
     </main>
   </div>
 </template>
@@ -83,38 +47,16 @@ function switchPage(page: Category): void {
 }
 
 .brand {
-  margin: 0 0 0.8rem;
+  margin: 0 0 0.4rem;
   font-size: clamp(1.35rem, 1.25rem + 0.7vw, 1.9rem);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-
-.nav-btn {
-  border: 1px solid #8ba2c1;
-  border-radius: 10px;
-  background: #f8fbff;
-  color: #173359;
-  padding: 0.4rem 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 140ms ease;
-}
-
-.nav-btn:hover {
-  border-color: #2d74d6;
-  transform: translateY(-1px);
-}
-
-.nav-btn.active {
-  background: #2f76da;
-  color: #fff;
-  border-color: #2f76da;
+.subtitle {
+  margin: 0;
+  color: #406188;
+  font-size: 0.96rem;
 }
 
 .content {
