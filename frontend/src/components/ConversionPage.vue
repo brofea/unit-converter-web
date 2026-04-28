@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-interface LengthConvertRequest {
+interface ConvertRequest {
   value: number
   from: string
   to: string
@@ -13,32 +13,26 @@ interface ConvertResponse {
 }
 
 const props = defineProps<{
+  category: string
+  unitOptions: Array<{ label: string; value: string }>
   apiBaseUrl: string
 }>()
 
-const unitOptions = [
-  { label: '米', value: 'm' },
-  { label: '厘米', value: 'cm' },
-  { label: '毫米', value: 'mm' },
-  { label: '英寸', value: 'inch' },
-  { label: '英尺', value: 'ft' }
-]
-
-const selectedUnitA = ref(unitOptions[0]?.value ?? '')
-const selectedUnitB = ref(unitOptions[1]?.value ?? unitOptions[0]?.value ?? '')
+const selectedUnitA = ref(props.unitOptions[0]?.value ?? '')
+const selectedUnitB = ref(props.unitOptions[1]?.value ?? props.unitOptions[0]?.value ?? '')
 const valueA = ref('')
 const loading = ref(false)
 const responseMessage = ref('')
 const resultValue = ref<number | null>(null)
 
-const endpoint = computed(() => `${props.apiBaseUrl}/api/v1/units/length`)
+const endpoint = computed(() => `${props.apiBaseUrl}/api/v1/convert`)
 
 const selectedFromLabel = computed(() => {
-  return unitOptions.find((unit) => unit.value === selectedUnitA.value)?.label ?? selectedUnitA.value
+  return props.unitOptions.find((unit) => unit.value === selectedUnitA.value)?.label ?? selectedUnitA.value
 })
 
 const selectedToLabel = computed(() => {
-  return unitOptions.find((unit) => unit.value === selectedUnitB.value)?.label ?? selectedUnitB.value
+  return props.unitOptions.find((unit) => unit.value === selectedUnitB.value)?.label ?? selectedUnitB.value
 })
 
 function swapUnits(): void {
@@ -64,7 +58,7 @@ async function submitConvert(): Promise<void> {
     return
   }
 
-  const payload: LengthConvertRequest = {
+  const payload: ConvertRequest = {
     value,
     from: selectedUnitA.value,
     to: selectedUnitB.value
@@ -107,7 +101,7 @@ async function submitConvert(): Promise<void> {
 
 <template>
   <section class="panel">
-    <h2 class="title">长度转换</h2>
+    <h2 class="title">{{ category }}转换</h2>
 
     <div class="form-row">
       <label for="fromUnit" class="label">起始单位</label>

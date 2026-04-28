@@ -10,8 +10,7 @@ This is a backend exercise project from [roadmap.sh](https://roadmap.sh/projects
 
 ## 功能
 
-- 基本的物理单位转换
-- 货币汇率查询和转换（实时汇率数据）
+- 多种物理单位转换
 - 前后端分离的架构设计
 
 ## 快速开始
@@ -34,13 +33,11 @@ This is a backend exercise project from [roadmap.sh](https://roadmap.sh/projects
 
 - Gin 框架的基本使用
 - RESTful API 设计
-- 与第三方 API（如货币汇率）的集成
 - 前后端分离的开发模式
 
 ## Features
 
-- Basic physical unit conversions
-- Currency exchange rate retrieval and conversion (with real-time exchange rate data)
+- Multiple physical unit conversions
 - Frontend-backend separation architecture
 
 ## Quick Start
@@ -63,5 +60,4 @@ For the backend:
 
 - Basic usage of the Gin framework
 - RESTful API design
-- Integration with third-party APIs (like currency exchange rates)
 - Frontend-backend separation in development

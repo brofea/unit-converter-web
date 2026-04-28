@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"unit-cvt/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 简单的 CORS 跨域中间件
@@ -31,19 +32,7 @@ func main() {
 	// API 分组
 	api := r.Group("/api/v1")
 	{
-		//exchange := api.Group("/exchange")
-		{
-			// 路径：GET /api/v1/exchange/latest?base=USD
-			//exchange.GET("/latest", )
-			// 路径：POST /api/v1/exchange/convert
-			//exchange.POST("/convert", )
-		}
-
-		units := api.Group("/units")
-		{
-			// POST /api/v1/units/length
-			units.POST("/length", service.ConvertLength)
-		}
+		api.POST("/convert", service.Convert)
 	}
 
 	r.Run(":8080")
